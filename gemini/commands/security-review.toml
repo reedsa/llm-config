@@ -1,0 +1,32 @@
+description = "Security-focused review of current unpushed changes"
+
+prompt = """
+Perform a security-focused review of the changes in this repository that are ahead of origin/main.
+
+Get the diff:
+!{git diff origin/main..HEAD}
+
+Focus exclusively on security concerns. Do not comment on style or general quality.
+
+Check for:
+- Injection vulnerabilities (SQL, command, template, path traversal)
+- Authentication and authorization issues (missing checks, privilege escalation)
+- Secrets and credentials (hardcoded keys, tokens, passwords in code or logs)
+- Input validation (unvalidated user input reaching sensitive operations)
+- Dependency risks (new packages with known CVEs or unusual permissions)
+- Cryptography misuse (weak algorithms, improper key handling, broken randomness)
+- Information disclosure (verbose errors, stack traces, over-broad API responses)
+
+Format your response as:
+
+## BLOCKERS
+Security issues that must be fixed before merging (vulnerabilities, exposed secrets, missing auth).
+If none, write "None."
+
+## OBSERVATIONS
+Lower-severity findings worth noting but not blocking (hardening opportunities, defence-in-depth gaps).
+If none, write "None."
+
+## VERDICT
+APPROVE or REQUEST_CHANGES
+"""

@@ -23,6 +23,5 @@ Parse from the arguments:
 
 5. Commit with a short imperative subject line referencing the issue (e.g. "Add foo bar (DRA-123)").
 
-6. Open a pull request against main with:
-   - Title: <issue_id>: <title>
-   - Body: what was implemented and why, key decisions made
+6. Do NOT open a pull request. The runner will invoke pre-pr-review.sh after this step,
+   which runs multi-LLM review passes and opens the PR once any blockers are addressed.

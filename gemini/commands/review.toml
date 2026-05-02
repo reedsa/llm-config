@@ -1,0 +1,27 @@
+description = "Review current unpushed changes for code quality issues"
+
+prompt = """
+Review the changes in this repository that are ahead of origin/main for code quality.
+
+Get the diff:
+!{git diff origin/main..HEAD}
+
+Focus on:
+- Correctness: logic errors, missing edge cases, off-by-ones
+- Clarity: confusing names, unclear intent, missing context
+- Maintainability: duplication, brittle patterns, missing tests for new behavior
+- API contracts: broken interfaces, incorrect error handling
+
+Format your response as:
+
+## BLOCKERS
+Issues that must be fixed before merging (incorrect behavior, broken tests, API breakage).
+If none, write "None."
+
+## SUGGESTIONS
+Non-blocking improvements (naming, minor simplifications, optional test coverage).
+If none, write "None."
+
+## VERDICT
+APPROVE or REQUEST_CHANGES
+"""

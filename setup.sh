@@ -39,4 +39,21 @@ link_files "$REPO_DIR/claude/commands" "$HOME/.claude/commands" "md"
 echo "==> Gemini commands (~/.gemini/commands/)"
 link_files "$REPO_DIR/gemini/commands" "$HOME/.gemini/commands" "toml"
 
+echo "==> Scripts (~/.local/bin/)"
+mkdir -p "$HOME/.local/bin"
+for src in "$REPO_DIR/scripts/"*.sh; do
+  [ -e "$src" ] || continue
+  name="$(basename "$src" .sh)"
+  dst="$HOME/.local/bin/$name"
+  if [ -L "$dst" ] && [ "$(readlink "$dst")" = "$src" ]; then
+    echo "  ok   $dst"
+  elif [ -e "$dst" ] && [ ! -L "$dst" ]; then
+    echo "  skip $dst (exists, not a symlink — remove manually to replace)"
+  else
+    chmod +x "$src"
+    ln -sf "$src" "$dst"
+    echo "  link $dst -> $src"
+  fi
+done
+
 echo "Done."

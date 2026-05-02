@@ -25,6 +25,5 @@ The argument identifies a Linear team by its key (e.g. "DRA") or name (e.g. "loo
 
 8. Commit with a short imperative subject line referencing the issue.
 
-9. Open a pull request against main with:
-   - Title: <issue_id>: <title>
-   - Body: what was implemented and why, key decisions made
+9. Do NOT open a pull request. The runner will invoke pre-pr-review.sh after this step,
+   which runs multi-LLM review passes and opens the PR once any blockers are addressed.
