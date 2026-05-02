@@ -33,6 +33,12 @@ link_files() {
   done
 }
 
+echo "==> Global Claude context (~/.claude/CLAUDE.md)"
+link_files "$REPO_DIR/home/claude" "$HOME/.claude" "md"
+
+echo "==> Global Gemini context (~/.gemini/GEMINI.md)"
+link_files "$REPO_DIR/home/gemini" "$HOME/.gemini" "md"
+
 echo "==> Claude commands (~/.claude/commands/)"
 link_files "$REPO_DIR/claude/commands" "$HOME/.claude/commands" "md"
 
