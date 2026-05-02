@@ -24,6 +24,5 @@ Format: `<team_key_or_name>` (e.g. `DRA` or `loot`)
 
 8. Commit with a short imperative subject referencing the issue ID.
 
-9. Open a PR against main:
-   - Title: `<issue_id>: <title>`
-   - Body: what was implemented, key decisions
+9. Push the branch. Do NOT open a PR — run `pre-pr-review <issue_id> <title>` from
+   the terminal after this session to run multi-LLM review and open the PR.

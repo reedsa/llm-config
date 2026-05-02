@@ -22,6 +22,5 @@ the title, and everything after is the body/context.
 
 5. Commit with a short imperative subject referencing the issue ID.
 
-6. Open a PR against main:
-   - Title: `<issue_id>: <title>`
-   - Body: what was implemented, key decisions
+6. Push the branch. Do NOT open a PR — run `pre-pr-review <issue_id> <title>` from
+   the terminal after this session to run multi-LLM review and open the PR.
