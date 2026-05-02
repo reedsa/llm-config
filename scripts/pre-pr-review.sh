@@ -45,6 +45,7 @@ run_claude_pass() {
     "$CLAUDE_BIN" \
         --model "$CLAUDE_MODEL" \
         --output-format stream-json --verbose \
+        --dangerously-skip-permissions \
         -p "$prompt" 2>/dev/null \
     | jq -r 'select(.type=="assistant") | .message.content[]? | select(.type=="text") | .text' \
     > "$out" || true
