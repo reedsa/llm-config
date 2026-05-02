@@ -76,17 +76,17 @@ run_gemini_pass "$REVIEWS_DIR/gemini-security.txt" "security-review"
 
 # Combine non-empty review files with labelled sections.
 FEEDBACK_FILE="$REVIEWS_DIR/combined.txt"
-declare -A LABELS=(
-    ["claude-quality"]="Claude — code quality"
-    ["claude-security"]="Claude — security"
-    ["gemini-quality"]="Gemini — code quality"
-    ["gemini-security"]="Gemini — security"
-)
 for key in claude-quality claude-security gemini-quality gemini-security; do
     f="$REVIEWS_DIR/${key}.txt"
     [ -s "$f" ] || continue
-    { echo "## ${LABELS[$key]}"; cat "$f"; echo; } >> "$FEEDBACK_FILE"
-    echo "  captured: ${LABELS[$key]}"
+    case "$key" in
+        claude-quality)  label="Claude — code quality" ;;
+        claude-security) label="Claude — security" ;;
+        gemini-quality)  label="Gemini — code quality" ;;
+        gemini-security) label="Gemini — security" ;;
+    esac
+    { echo "## $label"; cat "$f"; echo; } >> "$FEEDBACK_FILE"
+    echo "  captured: $label"
 done
 
 if [ ! -s "$FEEDBACK_FILE" ]; then
