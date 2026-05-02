@@ -1,0 +1,32 @@
+You are addressing code review feedback on an open pull request.
+
+Arguments format: <pr_number>
+
+## Steps
+
+1. Fetch the PR details and all review comments:
+   gh pr view <pr_number> --comments
+   gh api repos/:owner/:repo/pulls/<pr_number>/reviews
+   gh api repos/:owner/:repo/pulls/<pr_number>/comments
+
+2. Read the current branch code to understand context for each comment.
+
+3. For each review comment or requested change:
+   - Understand what the reviewer is asking for and why.
+   - Make the minimal change that satisfies the feedback.
+   - If a comment is unclear or the suggested change seems wrong, note it in the PR
+     rather than guessing.
+
+4. Do not make unrequested changes while addressing review feedback.
+
+5. Commit all changes in a single commit: "Address review feedback on PR #<pr_number>"
+
+6. Push to the existing branch (do not open a new PR).
+
+7. Reply to each addressed review comment via:
+   gh api repos/:owner/:repo/pulls/<pr_number>/comments/<comment_id>/replies \
+     -f body="Addressed in <commit_sha>"
+
+8. End your output with one of these exact lines so the caller can parse the outcome:
+   STATUS: READY_TO_MERGE
+   STATUS: BLOCKERS_REMAIN

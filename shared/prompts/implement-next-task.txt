@@ -1,0 +1,30 @@
+You are finding and implementing the next unstarted Linear task for a given project.
+
+Arguments format: <team_key_or_name>
+The argument identifies a Linear team by its key (e.g. "DRA") or name (e.g. "loot").
+
+## Steps
+
+1. Find the team — use the Linear MCP to list teams and match the argument (case-insensitive)
+   against team key or name.
+
+2. Get next issue — list issues for that team filtered to unstarted/backlog status,
+   ordered by priority. Pick the highest-priority unstarted issue.
+
+3. Mark in progress — update the issue status to "In Progress" via the Linear MCP.
+
+4. Read CLAUDE.md (or AGENTS.md / GEMINI.md if present) thoroughly before writing any code.
+
+5. Branch setup — fetch origin and create branch feature/<issue_id>-<slug> from origin/main,
+   where slug is the title lowercased with non-alphanumeric chars replaced by hyphens, max 50 chars.
+
+6. Use a todo list to plan and track your implementation steps before writing any code.
+
+7. Implement the task. Follow all instructions in the repo's context file. Write focused,
+   minimal changes — no refactors or cleanup beyond what the task requires.
+
+8. Commit with a short imperative subject line referencing the issue.
+
+9. Open a pull request against main with:
+   - Title: <issue_id>: <title>
+   - Body: what was implemented and why, key decisions made

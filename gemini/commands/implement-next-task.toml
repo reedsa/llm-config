@@ -1,0 +1,33 @@
+description = "Find and implement the next unstarted Linear task for the given team or project"
+
+prompt = """
+Find and implement the next unstarted Linear task for the given team or project.
+
+Arguments: {{args}}
+Format: <team_key_or_name> (e.g. `DRA` or `loot`)
+
+## Steps
+
+1. **Find the team** — use available Linear tools to list teams and match the argument
+   case-insensitively against team key or name.
+
+2. **Get next issue** — list issues for that team with status filter for unstarted/backlog,
+   ordered by priority. Pick the highest-priority unstarted issue.
+
+3. **Mark in progress** — update the issue status to "In Progress".
+
+4. Read GEMINI.md (or CLAUDE.md / AGENTS.md if present) thoroughly before writing any code.
+
+5. **Branch setup** — run `git fetch origin` and create `feature/<issue_id>-<slug>` from
+   `origin/main`. Slug: title lowercased, non-alphanumeric → hyphens, max 50 chars.
+
+6. Plan your implementation steps before writing code.
+
+7. Implement the task. Follow all context file instructions. Write focused, minimal changes.
+
+8. Commit with a short imperative subject referencing the issue ID.
+
+9. Open a PR against main:
+   - Title: `<issue_id>: <title>`
+   - Body: what was implemented, key decisions
+"""

@@ -1,0 +1,28 @@
+You are implementing a Linear task in the current repository. The task details are provided below.
+
+Arguments format: <project_key> <issue_id> <title> [body]
+Parse from the arguments:
+- project_key — short identifier for the project (e.g. "loot", "homelab")
+- issue_id    — Linear issue ID (e.g. "DRA-123")
+- title       — issue title
+- body        — additional context or requirements (optional)
+
+## Steps
+
+1. Read CLAUDE.md (or AGENTS.md / GEMINI.md if present) thoroughly before writing any code.
+
+2. Branch setup — check the current git branch.
+   - If already on a feature/<issue_id>-* branch, proceed as-is.
+   - Otherwise, fetch origin and create branch feature/<issue_id>-<slug> from origin/main,
+     where slug is the title lowercased with non-alphanumeric chars replaced by hyphens, max 50 chars.
+
+3. Use a todo list to plan and track your implementation steps before writing any code.
+
+4. Implement the task. Follow all instructions in the repo's context file. Write focused,
+   minimal changes — no refactors or cleanup beyond what the task requires.
+
+5. Commit with a short imperative subject line referencing the issue (e.g. "Add foo bar (DRA-123)").
+
+6. Open a pull request against main with:
+   - Title: <issue_id>: <title>
+   - Body: what was implemented and why, key decisions made
