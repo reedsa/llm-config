@@ -5,10 +5,6 @@
 #
 # Runs code-quality and security review passes through every available LLM,
 # combines the feedback, has Claude address any blockers, then opens the PR.
-#
-# Each LLM's review commands are only invoked if both the binary and the command
-# file exist. Claude's /review and /security-review are built-in; Gemini's are
-# installed via setup.sh from llm-config.
 
 set -euo pipefail
 
@@ -21,6 +17,8 @@ for arg in "$@"; do [ "$arg" = "--open-pr" ] && OPEN_PR=true; done
 CLAUDE_BIN="${CLAUDE_BIN:-$(command -v claude 2>/dev/null || echo claude)}"
 GEMINI_BIN="${GEMINI_BIN:-gemini}"
 CLAUDE_MODEL="${CLAUDE_MODEL:-claude-sonnet-4-6}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROMPTS_DIR="$SCRIPT_DIR/../shared/prompts"
 
 # Reviews go inside the project directory so Claude can read them.
 # Each run gets a unique directory; old runs accumulate for inspection.
@@ -36,8 +34,9 @@ if [ "$AHEAD" -eq 0 ]; then
     exit 1
 fi
 
-# Run a single LLM review pass and capture its text output.
-# Usage: run_review <output_file> <binary> <format_flag> <response_jq> <prompt>
+# Compute diff once — passed inline to Gemini to avoid !{...} confirmation prompts.
+DIFF=$(git diff origin/main..HEAD)
+
 run_claude_pass() {
     local out="$1" prompt="$2"
     command -v "$CLAUDE_BIN" &>/dev/null || return 0
@@ -52,11 +51,15 @@ run_claude_pass() {
 }
 
 run_gemini_pass() {
-    local out="$1" command_name="$2"
+    local out="$1" prompt_file="$2"
     command -v "$GEMINI_BIN" &>/dev/null || return 0
-    [ -f "$HOME/.gemini/commands/${command_name}.toml" ] || return 0
+    [ -f "$prompt_file" ] || return 0
     echo "    running..."
-    "$GEMINI_BIN" --output-format json -p "/$command_name" 2>/dev/null \
+    local full_prompt
+    full_prompt="$(cat "$prompt_file")
+
+$(printf '```diff\n%s\n```' "$DIFF")"
+    "$GEMINI_BIN" --output-format json -p "$full_prompt" 2>/dev/null \
     | jq -r '.response // empty' \
     > "$out" || true
 }
@@ -66,21 +69,22 @@ echo "--- Code quality review ---"
 echo "  Claude /pre-pr-quality-check"
 run_claude_pass "$REVIEWS_DIR/claude-quality.txt" "/pre-pr-quality-check"
 
-echo "  Gemini /review"
-run_gemini_pass "$REVIEWS_DIR/gemini-quality.txt" "review"
+echo "  Gemini"
+run_gemini_pass "$REVIEWS_DIR/gemini-quality.txt" "$PROMPTS_DIR/pre-pr-quality-check.txt"
 
 # --- Security reviews ---
 echo "--- Security review ---"
 echo "  Claude /pre-pr-security-check"
 run_claude_pass "$REVIEWS_DIR/claude-security.txt" "/pre-pr-security-check"
 
-echo "  Gemini /security-review"
-run_gemini_pass "$REVIEWS_DIR/gemini-security.txt" "security-review"
+echo "  Gemini"
+run_gemini_pass "$REVIEWS_DIR/gemini-security.txt" "$PROMPTS_DIR/pre-pr-security-check.txt"
 
 # --- Codex (placeholder: add once command format is confirmed) ---
 # echo "  Codex /review"
 
 # Combine non-empty review files with labelled sections.
+# Print each review's content as it's captured so the user can see findings.
 FEEDBACK_FILE="$REVIEWS_DIR/combined.txt"
 for key in claude-quality claude-security gemini-quality gemini-security; do
     f="$REVIEWS_DIR/${key}.txt"
@@ -92,12 +96,15 @@ for key in claude-quality claude-security gemini-quality gemini-security; do
         gemini-security) label="Gemini — security" ;;
     esac
     { echo "## $label"; cat "$f"; echo; } >> "$FEEDBACK_FILE"
-    echo "  captured: $label"
+    echo ""
+    echo "  --- $label ---"
+    cat "$f"
 done
 
 if [ ! -s "$FEEDBACK_FILE" ]; then
     echo "==> No review feedback collected."
 else
+    echo ""
     echo "==> Addressing blockers..."
     run_claude_pass "$REVIEWS_DIR/fixes.txt" "/address-pre-pr-feedback $FEEDBACK_FILE"
     [ -s "$REVIEWS_DIR/fixes.txt" ] && cat "$REVIEWS_DIR/fixes.txt"
