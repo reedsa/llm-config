@@ -1,18 +1,20 @@
 description = "Find and implement the next unstarted Linear task for the given team or project"
 
 prompt = """
-Find and implement the next unstarted Linear task for the given team or project.
+Find and implement the next unstarted Linear task for the given project.
 
 Arguments: {{args}}
-Format: <team_key_or_name> (e.g. `DRA` or `loot`)
+Format: <project_name> (e.g. `loot-app-basic`) — matches a Linear project name,
+case-insensitive substring OK.
 
 ## Steps
 
-1. **Find the team** — use available Linear tools to list teams and match the argument
-   case-insensitively against team key or name.
+1. **Find the project** — call list_projects and find the project whose name contains
+   the argument (case-insensitive). If exactly one match, use it. If multiple, prefer the
+   closest match. If none, fall back to list_teams and match by team key or name instead.
 
-2. **Get next issue** — list issues for that team with status filter for unstarted/backlog,
-   ordered by priority. Pick the highest-priority unstarted issue.
+2. **Get next issue** — list issues filtered to that project (or team if fallback),
+   status unstarted/backlog, ordered by priority. Pick the highest-priority unstarted issue.
 
 3. **Mark in progress** — update the issue status to "In Progress".
 
