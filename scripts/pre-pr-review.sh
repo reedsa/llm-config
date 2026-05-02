@@ -63,16 +63,16 @@ run_gemini_pass() {
 
 # --- Code quality reviews ---
 echo "--- Code quality review ---"
-echo "  Claude /review"
-run_claude_pass "$REVIEWS_DIR/claude-quality.txt" "/review"
+echo "  Claude /pre-pr-quality-check"
+run_claude_pass "$REVIEWS_DIR/claude-quality.txt" "/pre-pr-quality-check"
 
 echo "  Gemini /review"
 run_gemini_pass "$REVIEWS_DIR/gemini-quality.txt" "review"
 
 # --- Security reviews ---
 echo "--- Security review ---"
-echo "  Claude /security-review"
-run_claude_pass "$REVIEWS_DIR/claude-security.txt" "/security-review"
+echo "  Claude /pre-pr-security-check"
+run_claude_pass "$REVIEWS_DIR/claude-security.txt" "/pre-pr-security-check"
 
 echo "  Gemini /security-review"
 run_gemini_pass "$REVIEWS_DIR/gemini-security.txt" "security-review"
