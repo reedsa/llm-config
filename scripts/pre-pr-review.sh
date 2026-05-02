@@ -27,7 +27,6 @@ CLAUDE_MODEL="${CLAUDE_MODEL:-claude-sonnet-4-6}"
 REVIEWS_DIR=".pre-pr-review"
 rm -rf "$REVIEWS_DIR"
 mkdir -p "$REVIEWS_DIR"
-trap 'rm -rf "$REVIEWS_DIR"' EXIT
 
 echo "==> Pre-PR review: $ISSUE_ID — $TITLE"
 
