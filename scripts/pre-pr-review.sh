@@ -15,7 +15,7 @@ set -euo pipefail
 ISSUE_ID="${1:?issue_id required}"
 TITLE="${2:?title required}"
 
-CLAUDE_BIN="${CLAUDE_BIN:-/home/stu/.local/bin/claude}"
+CLAUDE_BIN="${CLAUDE_BIN:-$(command -v claude 2>/dev/null || echo claude)}"
 GEMINI_BIN="${GEMINI_BIN:-gemini}"
 CLAUDE_MODEL="${CLAUDE_MODEL:-claude-sonnet-4-6}"
 
