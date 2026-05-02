@@ -14,12 +14,19 @@ set -euo pipefail
 
 ISSUE_ID="${1:?issue_id required}"
 TITLE="${2:?title required}"
+# Pass --open-pr to skip the confirmation and open the PR automatically (for CI/runners).
+OPEN_PR=false
+for arg in "$@"; do [ "$arg" = "--open-pr" ] && OPEN_PR=true; done
 
 CLAUDE_BIN="${CLAUDE_BIN:-$(command -v claude 2>/dev/null || echo claude)}"
 GEMINI_BIN="${GEMINI_BIN:-gemini}"
 CLAUDE_MODEL="${CLAUDE_MODEL:-claude-sonnet-4-6}"
 
-REVIEWS_DIR=$(mktemp -d)
+# Reviews go inside the project directory so Claude can read them.
+# Cleaned up on exit; inspect .pre-pr-review/ during the run if needed.
+REVIEWS_DIR=".pre-pr-review"
+rm -rf "$REVIEWS_DIR"
+mkdir -p "$REVIEWS_DIR"
 trap 'rm -rf "$REVIEWS_DIR"' EXIT
 
 echo "==> Pre-PR review: $ISSUE_ID — $TITLE"
@@ -90,15 +97,20 @@ for key in claude-quality claude-security gemini-quality gemini-security; do
 done
 
 if [ ! -s "$FEEDBACK_FILE" ]; then
-    echo "==> No review feedback collected — opening PR without review."
+    echo "==> No review feedback collected."
 else
     echo "==> Addressing blockers..."
     run_claude_pass "$REVIEWS_DIR/fixes.txt" "/address-pre-pr-feedback $FEEDBACK_FILE"
     [ -s "$REVIEWS_DIR/fixes.txt" ] && cat "$REVIEWS_DIR/fixes.txt"
 fi
 
-echo "==> Opening PR..."
-gh pr create \
-    --title "$ISSUE_ID: $TITLE" \
-    --base main \
-    --fill
+PR_CMD="gh pr create --title \"$ISSUE_ID: $TITLE\" --base main --fill"
+
+if [ "$OPEN_PR" = true ]; then
+    echo "==> Opening PR..."
+    eval "$PR_CMD"
+else
+    echo ""
+    echo "==> Review complete. When satisfied, open the PR with:"
+    echo "    $PR_CMD"
+fi
