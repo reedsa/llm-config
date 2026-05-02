@@ -23,9 +23,8 @@ GEMINI_BIN="${GEMINI_BIN:-gemini}"
 CLAUDE_MODEL="${CLAUDE_MODEL:-claude-sonnet-4-6}"
 
 # Reviews go inside the project directory so Claude can read them.
-# Cleaned up on exit; inspect .pre-pr-review/ during the run if needed.
-REVIEWS_DIR=".pre-pr-review"
-rm -rf "$REVIEWS_DIR"
+# Each run gets a unique directory; old runs accumulate for inspection.
+REVIEWS_DIR=".pre-pr-review/${ISSUE_ID}-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$REVIEWS_DIR"
 
 echo "==> Pre-PR review: $ISSUE_ID — $TITLE"
