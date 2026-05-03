@@ -68,10 +68,17 @@ run_gemini_pass() {
     command -v "$GEMINI_BIN" &>/dev/null || { echo "    skipped (gemini not found)"; return 0; }
     [ -f "$prompt_file" ] || { echo "    skipped (prompt file not found: $prompt_file)"; return 0; }
     echo "    running..."
-    "$GEMINI_BIN" --output-format json \
-        -p "$(build_prompt "$prompt_file")" 2>/dev/null \
+    # Force OAuth auth by stripping API-key env vars; an expired
+    # GEMINI_API_KEY/GOOGLE_API_KEY otherwise takes precedence over
+    # ~/.gemini/oauth_creds.json and fails the request.
+    env -u GEMINI_API_KEY -u GOOGLE_API_KEY -u GOOGLE_GENAI_API_KEY \
+        "$GEMINI_BIN" --output-format json \
+        -p "$(build_prompt "$prompt_file")" 2>"$out.stderr" \
     | jq -r '.response // empty' \
     > "$out" || true
+    if [ ! -s "$out" ] && [ -s "$out.stderr" ]; then
+        echo "    gemini produced no response — see $out.stderr"
+    fi
 }
 
 # --- Code quality reviews ---
