@@ -26,5 +26,6 @@ case-insensitive substring OK.
 
 8. Commit with a short imperative subject referencing the issue ID.
 
-9. Push the branch. Do NOT open a PR — run `pre-pr-review <issue_id> <title>` from
-   the terminal after this session to run multi-LLM review and open the PR.
+9. Push the branch. Do NOT open a PR — tell the user the branch is ready and
+   suggest running `/pre-pr-review` to walk through multi-LLM review findings
+   interactively before opening the PR.

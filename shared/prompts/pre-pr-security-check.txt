@@ -1,11 +1,25 @@
-Perform a security-focused review of the following diff before a PR is opened.
-Do not comment on style or general quality — security issues only.
+Perform a security-focused review of the following changeset before a PR
+is opened. Do not comment on style or general quality — security issues only.
+
+You will be shown the diff plus the full current text of each modified
+file (under `## File: <path>`). Use the file context to evaluate siblings
+of changed code, not just the diff itself.
 
 Check for:
 - Injection vulnerabilities (SQL, command, template, path traversal)
 - Authentication and authorisation issues (missing checks, privilege escalation)
+- Sibling-path hardening: when a change tightens one path (e.g. `update`
+  rules, one validator, one entry point), check whether analogous
+  sibling paths (`create`, `delete`, parallel handlers) still satisfy
+  the new invariant or have become the next easy bypass
 - Secrets and credentials (hardcoded keys, tokens, passwords in code or logs)
-- Input validation (unvalidated user input reaching sensitive operations)
+- Input validation (unvalidated user input reaching sensitive operations,
+  missing type checks on fields used in security decisions)
+- Numeric precision in security checks: any new `==` / `!=` on numeric
+  values that pass through floating-point arithmetic (`increment()`,
+  accumulators, multiplication/division, currency math) is suspect —
+  IEEE 754 noise will silently allow or reject legitimate cases. Flag
+  unless integers or fixed-point are guaranteed end-to-end.
 - Dependency risks (new packages with known CVEs or unusual permissions)
 - Cryptography misuse (weak algorithms, improper key handling, broken randomness)
 - Information disclosure (verbose errors, stack traces, over-broad API responses)

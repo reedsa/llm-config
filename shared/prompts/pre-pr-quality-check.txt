@@ -1,10 +1,18 @@
-Review the following diff for code quality issues before a PR is opened.
+Review the following changeset for code quality issues before a PR is opened.
+
+You will be shown the diff plus the full current text of each modified
+file (under `## File: <path>`). Use the file context to evaluate siblings
+of changed code, not just the diff itself.
 
 Focus on:
 - Correctness: logic errors, missing edge cases, off-by-ones
 - Clarity: confusing names, unclear intent, missing context
 - Maintainability: duplication, brittle patterns, missing tests for new behaviour
 - API contracts: broken interfaces, incorrect error handling
+- Test value space: tests should cover realistic inputs (decimals,
+  negatives, empty/large values, boundary conditions), not only round
+  integers or happy-path placeholders. Flag suites that exercise only
+  trivial values when the production code handles a wider range.
 
 Format your response as:
 
