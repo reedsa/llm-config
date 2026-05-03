@@ -23,13 +23,27 @@ Arguments: $ARGUMENTS (optional — free-form context, e.g. issue ID/title)
 ## Review passes
 
 Run **two separate passes per reviewer** — quality and security — so each
-review stays focused. Save raw output for each pass into the run directory
+review stays focused. **Run all four passes in parallel**: fire both Gemini
+passes as background shell processes first, then perform both Claude passes
+in-session while Gemini is running, then wait for Gemini to finish before
+aggregating. Save raw output for each pass into the run directory
 (`claude-quality.txt`, `claude-security.txt`, `gemini-quality.txt`,
 `gemini-security.txt`). Tell the user when each pass starts and finishes.
 
 The canonical prompt bodies live at:
 - `~/projects/reedsa/llm-config/shared/prompts/pre-pr-quality-check.txt`
 - `~/projects/reedsa/llm-config/shared/prompts/pre-pr-security-check.txt`
+
+### Execution order
+
+1. **Build both Gemini prompt files and launch both passes in the background**
+   in a single Bash call (see template below). Both processes run concurrently.
+2. **Immediately perform both Claude passes in-session** (quality then security)
+   while Gemini is running. Write each result to its `.txt` file before moving
+   on.
+3. **Wait for both Gemini background jobs** — check that the output files are
+   non-empty. If either is empty, note the skip and continue.
+4. Proceed to aggregation once all four files are written.
 
 ### Claude passes (this session)
 For each pass, read the prompt file, then perform the review yourself in
@@ -38,29 +52,50 @@ Write the structured response (with `## BLOCKERS`,
 `## SUGGESTIONS`/`## OBSERVATIONS`, `## VERDICT`) to the matching `.txt`
 file.
 
-### Gemini passes (headless)
-Invoke Gemini via Bash for each prompt. Concatenate the prompt body with
-the assembled context (diff + files) into a temp prompt file:
+### Gemini passes (headless, launched in parallel)
+Build both prompt files and launch both Gemini invocations in a single Bash
+call using background processes so they run concurrently:
 
 ```bash
-PROMPT_FILE=$(mktemp)
-{
-  cat <prompt_path>
-  printf '\n\n```diff\n'; cat <diff_path>; printf '\n```\n'
-  for f in <run>/context/*.txt; do
-    printf '\n## File: %s\n```\n' "$(basename "$f")"
-    cat "$f"
-    printf '\n```\n'
-  done
-} > "$PROMPT_FILE"
+RUN_DIR="<run>"
+QUALITY_PROMPT=~/projects/reedsa/llm-config/shared/prompts/pre-pr-quality-check.txt
+SECURITY_PROMPT=~/projects/reedsa/llm-config/shared/prompts/pre-pr-security-check.txt
+OUT_Q="$RUN_DIR/gemini-quality.txt"
+OUT_S="$RUN_DIR/gemini-security.txt"
 
-env -u GEMINI_API_KEY -u GOOGLE_API_KEY -u GOOGLE_GENAI_API_KEY \
-    gemini --output-format json -p "$(cat "$PROMPT_FILE")" 2>"$OUT.stderr" \
-| jq -r '.response // empty' > "$OUT" || true
+build_prompt() {
+  local prompt_path="$1"
+  local tmp
+  tmp=$(mktemp)
+  {
+    cat "$prompt_path"
+    printf '\n\n```diff\n'; cat "$RUN_DIR/branch.diff"; printf '\n```\n'
+    for f in "$RUN_DIR/context/"*.txt; do
+      printf '\n## File: %s\n```\n' "$(basename "$f")"
+      cat "$f"
+      printf '\n```\n'
+    done
+  } > "$tmp"
+  echo "$tmp"
+}
+
+QF=$(build_prompt "$QUALITY_PROMPT")
+SF=$(build_prompt "$SECURITY_PROMPT")
+
+(env -u GEMINI_API_KEY -u GOOGLE_API_KEY -u GOOGLE_GENAI_API_KEY \
+    gemini --output-format json -p "$(cat "$QF")" 2>"$OUT_Q.stderr" \
+ | jq -r '.response // empty' > "$OUT_Q" || true) &
+
+(env -u GEMINI_API_KEY -u GOOGLE_API_KEY -u GOOGLE_GENAI_API_KEY \
+    gemini --output-format json -p "$(cat "$SF")" 2>"$OUT_S.stderr" \
+ | jq -r '.response // empty' > "$OUT_S" || true) &
+
+wait
+echo "Gemini passes complete"
 ```
 
-If `gemini` is not on PATH or returns nothing, note the skip and continue —
-do not fail the whole flow.
+If `gemini` is not on PATH or a pass returns nothing, note the skip and
+continue — do not fail the whole flow.
 
 ## Aggregate and present
 
@@ -142,9 +177,11 @@ all selected fixes are committed, re-run the same four passes against the
 
 1. Recapture the diff (`git diff origin/main..HEAD > <run>/branch.diff.v2`)
    and refresh the context bundle for any newly-modified files.
-2. Re-run all four reviewer passes, writing to
-   `claude-quality.v2.txt`, `claude-security.v2.txt`,
-   `gemini-quality.v2.txt`, `gemini-security.v2.txt`.
+2. Re-run all four reviewer passes in parallel (same pattern as the initial
+   run — both Gemini passes backgrounded, both Claude passes in-session
+   while Gemini runs), writing to `claude-quality.v2.txt`,
+   `claude-security.v2.txt`, `gemini-quality.v2.txt`,
+   `gemini-security.v2.txt`.
 3. Compare findings to the v1 set. Surface only **new** findings
    (file:line + first-sentence fingerprint not present in v1, or v1
    findings that are still present despite a claimed fix). For each new
