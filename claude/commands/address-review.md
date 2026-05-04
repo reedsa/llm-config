@@ -67,45 +67,54 @@ a new commit.
 
 ## Step 4 — Analyze prompt improvement opportunities
 
-After all fixes are applied, read the canonical reviewer prompt files:
+After all fixes are applied, read all three canonical prompt files:
 
 - `~/projects/reedsa/llm-config/shared/prompts/pre-pr-quality-check.txt`
 - `~/projects/reedsa/llm-config/shared/prompts/pre-pr-security-check.txt`
+- `~/projects/reedsa/llm-config/shared/prompts/implement-task.txt`
 
 For each addressed finding, determine:
 
-1. **Is this pattern already covered?** Does the existing prompt have an instruction
-   that would have directed a reviewer to catch this before the PR was opened?
-   If yes, mark it "already covered" and skip.
+1. **Is this pattern already covered?** Does any existing prompt have an instruction
+   that would have caught or prevented this issue? If yes, mark it "already covered" and skip.
 
-2. **What was missing?** Identify the specific pattern or invariant the prompt doesn't
-   mention. Be precise: "no instruction to check rounding before currency writes" is
-   better than "edge cases".
+2. **What was missing?** Identify the specific pattern or invariant that no prompt mentions.
+   Be precise: "no instruction to check rounding before currency writes" is better than "edge cases".
 
-3. **Draft an addition** in the same imperative style as the existing checks:
+3. **Route to the right prompt** using this decision rule:
+   - **implement-task.txt** — the rule is specific and actionable at write time: a developer
+     writing the code would immediately know how to apply it (e.g. "use 'Recent' not 'All'
+     when data is limited or paginated"). Specific, context-rich rules belong here.
+   - **pre-pr-quality-check.txt / pre-pr-security-check.txt** — the rule catches a class of
+     subtle error that is easy to miss even when paying attention: architectural invariants,
+     correctness patterns, security properties. Broad, pattern-level rules belong here.
+   - When in doubt, prefer **implement-task.txt**. A specific rule in a reviewer prompt adds
+     noise across every future PR; the same rule in the implementation prompt fires only
+     when the implementer is writing the relevant code.
+
+4. **Draft an addition** in the same imperative style as the target file's existing content:
    - **General**: catches the class of issue, not just this PR's code.
-   - **Concrete**: tells the reviewer what to look for, not just "be careful about X".
+   - **Concrete**: tells the reader what to look for or do, not just "be careful about X".
    - **Minimal**: one or two sentences at most.
-   - Classify as quality or security (security: auth/authz, injection, privilege,
-     crypto, numeric precision in security decisions; quality: everything else).
 
 ## Step 5 — Prompt improvement gate (before pushing)
 
-If prompt additions were drafted, present them **before pushing**:
+If any additions were drafted, present them **before pushing**:
 
-Print: **"These issues reached PR review without being caught pre-PR. Suggested prompt additions:"**
+Print: **"These issues reached PR review without being caught earlier. Suggested prompt additions:"**
 
-Show a unified diff for each affected prompt file. Under each addition, print one
-sentence naming which finding motivated it.
+Show a unified diff for each affected file. Under each addition, print one sentence naming
+which finding motivated it and which prompt it targets (and briefly why that prompt).
 
 Ask: **"Apply these prompt improvements? (yes / no / edit)"**
 
 - **yes**: write the updated files and commit from the llm-config repo:
   ```bash
   git -C ~/projects/reedsa/llm-config add shared/prompts/pre-pr-quality-check.txt \
-      shared/prompts/pre-pr-security-check.txt
+      shared/prompts/pre-pr-security-check.txt \
+      shared/prompts/implement-task.txt
   git -C ~/projects/reedsa/llm-config commit -m \
-      "chore: improve review prompts from PR #<pr_number> feedback"
+      "chore: improve prompts from PR #<pr_number> feedback"
   ```
 - **no**: skip, proceed to push.
 - **edit**: let the user adjust the draft, then re-present before applying.
@@ -143,7 +152,7 @@ Print a concise summary:
 - Findings reviewed (total, by severity)
 - Findings addressed (one line per fix, with commit SHA)
 - Findings skipped (and why — user declined, or a TODO was left)
-- Prompt improvements applied (N quality, N security additions) or "none needed"
+- Prompt improvements applied (N to implement-task, N quality, N security) or "none needed"
 
 End with exactly one of:
 ```
