@@ -11,10 +11,17 @@ Retrieve all feedback on the PR:
 gh pr view <pr_number> --json title,body,headRefName,baseRefName,author
 gh api repos/:owner/:repo/pulls/<pr_number>/reviews
 gh api repos/:owner/:repo/pulls/<pr_number>/comments
+gh api repos/:owner/:repo/issues/<pr_number>/comments
 ```
 
-For each inline comment, capture the file path, line number, and a 5-line context
-window around the cited line (read the file via the Read tool).
+Three distinct sources to process:
+- **Formal reviews** (`/reviews`): include the review `body` as a finding when it is
+  non-empty and contains actual feedback (not just "LGTM" or a summary with no action).
+  Note the review `state` (APPROVED / CHANGES_REQUESTED / COMMENTED).
+- **Inline code comments** (`/pulls/comments`): capture file path, line number, and a
+  5-line context window around the cited line (read the file via the Read tool).
+- **PR conversation comments** (`/issues/comments`): top-level thread comments not tied
+  to a specific line. Include these as findings with reviewer name and full comment body.
 
 ## Step 2 — Present findings summary
 
@@ -114,12 +121,21 @@ Push the fix commits to the existing branch (do not open a new PR):
 git push
 ```
 
-Reply to each addressed inline comment with the commit SHA:
+Reply to each addressed finding with the commit SHA:
 
-```bash
-gh api repos/:owner/:repo/pulls/<pr_number>/comments/<comment_id>/replies \
-  -f body="Addressed in <commit_sha>"
-```
+- **Inline code comment** — reply in-thread:
+  ```bash
+  gh api repos/:owner/:repo/pulls/<pr_number>/comments/<comment_id>/replies \
+    -f body="Addressed in <commit_sha>"
+  ```
+- **PR conversation comment** — post a new top-level PR comment referencing the original:
+  ```bash
+  gh pr comment <pr_number> --body "Addressed in <commit_sha> (re: @<user>'s comment)"
+  ```
+- **Review body finding** — post a new top-level PR comment tagging the reviewer:
+  ```bash
+  gh pr comment <pr_number> --body "Addressed in <commit_sha> (re: @<reviewer>'s review feedback)"
+  ```
 
 ## Step 7 — Wrap up
 
