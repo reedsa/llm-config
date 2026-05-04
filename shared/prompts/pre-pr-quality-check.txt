@@ -13,6 +13,16 @@ Focus on:
   negatives, empty/large values, boundary conditions), not only round
   integers or happy-path placeholders. Flag suites that exercise only
   trivial values when the production code handles a wider range.
+- Guard-clause tests: every new validation guard or thrown error (`if (!valid) throw`,
+  early-return checks, etc.) must have at least one test that exercises the error path.
+  Flag guards that are added in production code but have no corresponding test.
+- Test sequencing: expected values used in assertions must be captured *before* the
+  code under test runs. Capturing a `new Date()` or similar after the call creates a
+  timing race. Flag any test where a computed expected value is derived after the
+  subject call.
+- Mock-layer consistency: a test must mock the same module the subject imports from.
+  If the component imports `foo` from `../../lib/auth`, the test must mock `../../lib/auth`,
+  not a transitive dependency like `firebase/auth`. Flag mismatches.
 
 Format your response as:
 

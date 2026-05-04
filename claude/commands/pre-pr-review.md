@@ -103,8 +103,11 @@ After all four passes complete:
 
 1. Parse each output file. Extract individual findings under
    `## BLOCKERS`, `## SUGGESTIONS`, and `## OBSERVATIONS`.
-2. De-duplicate near-identical findings across reviewers (e.g. both Claude
-   and Gemini flagging the same line). Note which reviewers raised each one.
+2. De-duplicate only when two findings share both the same symptom **and** the same
+   recommended fix. If two reviewers flag the same file/area but recommend different
+   actions (e.g. one says "add a comment", another says "fix the race in the test"),
+   keep them as separate numbered findings — do not collapse them. Note which
+   reviewers raised each finding.
 3. Print a numbered summary, grouped by severity. For each finding, print:
    - One-line description, file:line if known, reviewers who raised it.
    - A 3–5 line **code excerpt** from the file at that line (read it via
