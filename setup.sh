@@ -36,6 +36,9 @@ link_files() {
 echo "==> Global Claude context (~/.claude/CLAUDE.md)"
 link_files "$REPO_DIR/home/claude" "$HOME/.claude" "md"
 
+echo "==> Claude home scripts (~/.claude/*.sh)"
+link_files "$REPO_DIR/home/claude" "$HOME/.claude" "sh"
+
 echo "==> Global Gemini context (~/.gemini/GEMINI.md)"
 link_files "$REPO_DIR/home/gemini" "$HOME/.gemini" "md"
 
