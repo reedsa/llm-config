@@ -208,3 +208,37 @@ Print a concise summary:
 
 **Do not open a PR.** Tell the user the branch is ready and that they can
 ask you to open the PR when they're ready.
+
+### Prompt improvement offer
+
+After the summary, ask: **"Would you like to improve the reviewer prompts based on findings from this run?"**
+
+If yes:
+
+1. Read both canonical prompt files:
+   - `~/projects/reedsa/llm-config/shared/prompts/pre-pr-quality-check.txt`
+   - `~/projects/reedsa/llm-config/shared/prompts/pre-pr-security-check.txt`
+
+2. For each finding that was addressed during this session, determine whether the
+   existing prompts already contain an instruction that would have caught it pre-diff.
+   Skip findings that are already covered.
+
+3. For uncovered findings, draft a minimal addition in the same imperative style as
+   the existing checks — general (catches the class, not this PR's code), concrete
+   (tells the reviewer exactly what to look for), one or two sentences max. Classify
+   as quality or security (security: auth/authz, injection, privilege, crypto, numeric
+   precision in security decisions; quality: everything else).
+
+4. Show a unified diff for each affected prompt file. Under each addition, print one
+   sentence naming which finding motivated it. Ask: **"Apply these changes? (yes / no / edit)"**
+
+5. If confirmed, write the updated files and commit from the llm-config repo:
+   ```bash
+   git -C ~/projects/reedsa/llm-config add shared/prompts/pre-pr-quality-check.txt \
+       shared/prompts/pre-pr-security-check.txt
+   git -C ~/projects/reedsa/llm-config commit -m \
+       "chore: improve review prompts from <branch-label> findings"
+   ```
+
+Both Claude and Gemini reviewers use the same `shared/prompts/` files, so the
+improvement applies to all future runs immediately.
