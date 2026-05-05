@@ -29,3 +29,14 @@ Parse from the arguments:
 7. When introducing shared state (e.g. `error`, `status`) that spans multiple steps or
    views in a multi-step UI flow, clear it on every step transition — not only before
    the next async call. Stale messages from one step will otherwise appear on unrelated screens.
+
+8. When the task introduces a user-visible flow (navigation, form submission, data
+   mutation), add the E2E test required by CLAUDE.md — do not rely on unit/component
+   tests alone to satisfy that requirement.
+
+9. When a runtime condition (e.g. missing auth context, null session value) would make
+   a submit handler bail silently, include that condition in the form's canSubmit /
+   disabled computation so the button is visually disabled rather than appearing pressable.
+
+10. When rendering a group of accessibilityRole="radio" controls, wrap them in a View
+    with accessibilityRole="radiogroup" and an accessibilityLabel describing the group.

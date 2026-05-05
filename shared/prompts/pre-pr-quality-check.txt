@@ -23,6 +23,9 @@ Focus on:
 - Mock-layer consistency: a test must mock the same module the subject imports from.
   If the component imports `foo` from `../../lib/auth`, the test must mock `../../lib/auth`,
   not a transitive dependency like `firebase/auth`. Flag mismatches.
+- Form-control disabled state: when a test asserts that a guard prevents form submission,
+  also verify the control's disabled state (e.g. `accessibilityState?.disabled === true`),
+  not only the absence of side-effects like a mock not being called.
 
 Format your response as:
 
