@@ -1,14 +1,18 @@
-Find and implement the next unstarted Linear task for the given project.
+Find and implement the next unstarted Linear task for the current project.
 
 Arguments: $ARGUMENTS
-Format: `<project_name>` (e.g. `loot-app-basic`) — matches a Linear project name,
-case-insensitive substring OK.
+Format: `[project_name]` — optional. If omitted, the project is inferred from the
+working directory.
 
 ## Steps
 
-1. **Find the project** — call `list_projects` and find the project whose name contains
-   the argument (case-insensitive). If exactly one match, use it. If multiple, prefer the
-   closest match. If none, fall back to `list_teams` and match by team key or name instead.
+1. **Find the project** — determine the search term:
+   - If an argument was provided, use it as the search term.
+   - Otherwise, use `basename $PWD` as the search term (e.g. working directory
+     `/Users/stu/projects/reedsa/loot-app-basic` → search term `loot-app-basic`).
+   Call `list_projects` and find the project whose name contains the search term
+   (case-insensitive). If exactly one match, use it. If multiple, prefer the closest
+   match. If none, fall back to `list_teams` and match by team key or name instead.
 
 2. **Get next issue** — call `list_issues` filtered to that project (or team if fallback),
    status unstarted/backlog, ordered by priority. Pick the highest-priority unstarted issue.
