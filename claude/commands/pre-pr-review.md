@@ -34,6 +34,12 @@ The canonical prompt bodies live at:
 - `~/projects/reedsa/llm-config/shared/prompts/pre-pr-quality-check.txt`
 - `~/projects/reedsa/llm-config/shared/prompts/pre-pr-security-check.txt`
 
+If the working directory contains `.claude/prompts/pre-pr-quality-check.txt` or
+`.claude/prompts/pre-pr-security-check.txt`, append each to the corresponding
+shared prompt (under a `## Project-specific checks` header) before passing it
+to any reviewer. This lets individual projects layer in stack-specific rules
+without touching the shared prompts.
+
 ### Execution order
 
 1. **Build both Gemini prompt files and launch both passes in the background**
@@ -46,7 +52,9 @@ The canonical prompt bodies live at:
 4. Proceed to aggregation once all four files are written.
 
 ### Claude passes (this session)
-For each pass, read the prompt file, then perform the review yourself in
+For each pass, read the shared prompt file and — if `.claude/prompts/<name>.txt`
+exists in the working directory — read that too and treat it as appended content
+under a `## Project-specific checks` header. Then perform the review yourself in
 this session against the assembled `review-input.md` (diff + full files).
 Write the structured response (with `## BLOCKERS`,
 `## SUGGESTIONS`/`## OBSERVATIONS`, `## VERDICT`) to the matching `.txt`
@@ -65,10 +73,12 @@ OUT_S="$RUN_DIR/gemini-security.txt"
 
 build_prompt() {
   local prompt_path="$1"
+  local project_ext=".claude/prompts/$(basename "$prompt_path")"
   local tmp
   tmp=$(mktemp)
   {
     cat "$prompt_path"
+    [ -f "$project_ext" ] && { printf '\n\n## Project-specific checks\n\n'; cat "$project_ext"; }
     printf '\n\n```diff\n'; cat "$RUN_DIR/branch.diff"; printf '\n```\n'
     for f in "$RUN_DIR/context/"*.txt; do
       printf '\n## File: %s\n```\n' "$(basename "$f")"
@@ -224,21 +234,36 @@ If yes:
    Skip findings that are already covered.
 
 3. For uncovered findings, draft a minimal addition in the same imperative style as
-   the existing checks — general (catches the class, not this PR's code), concrete
-   (tells the reviewer exactly what to look for), one or two sentences max. Classify
-   as quality or security (security: auth/authz, injection, privilege, crypto, numeric
-   precision in security decisions; quality: everything else).
+   the existing checks — concrete (tells the reviewer exactly what to look for), one
+   or two sentences max. Classify each addition on two axes:
+   - **Quality vs security** (security: auth/authz, injection, privilege, crypto,
+     numeric precision in security decisions; quality: everything else).
+   - **Generic vs project-specific**: a check is project-specific if it references
+     a particular library, framework, data model, or pattern unique to this codebase
+     (e.g. Firestore `runTransaction` rules, a specific auth pattern). Generic checks
+     apply to any project of the same type (e.g. any React/TS project).
 
-4. Show a unified diff for each affected prompt file. Under each addition, print one
-   sentence naming which finding motivated it. Ask: **"Apply these changes? (yes / no / edit)"**
+4. Group additions by destination and show a unified diff for each target file:
+   - **Generic** → `~/projects/reedsa/llm-config/shared/prompts/pre-pr-{quality,security}-check.txt`
+   - **Project-specific** → `.claude/prompts/pre-pr-{quality,security}-check.txt`
+     (relative to the working directory; create the file if it doesn't exist)
 
-5. If confirmed, write the updated files and commit from the llm-config repo:
-   ```bash
-   git -C ~/projects/reedsa/llm-config add shared/prompts/pre-pr-quality-check.txt \
-       shared/prompts/pre-pr-security-check.txt
-   git -C ~/projects/reedsa/llm-config commit -m \
-       "chore: improve review prompts from <branch-label> findings"
-   ```
+   Under each addition, print one sentence naming which finding motivated it.
+   Ask: **"Apply these changes? (yes / no / edit)"**
 
-Both Claude and Gemini reviewers use the same `shared/prompts/` files, so the
-improvement applies to all future runs immediately.
+5. If confirmed, write the updated files. Commit each destination separately:
+   - Generic changes: commit from the llm-config repo:
+     ```bash
+     git -C ~/projects/reedsa/llm-config add shared/prompts/pre-pr-quality-check.txt \
+         shared/prompts/pre-pr-security-check.txt
+     git -C ~/projects/reedsa/llm-config commit -m \
+         "chore: improve review prompts from <branch-label> findings"
+     ```
+   - Project-specific changes: stage and commit in the current repo:
+     ```bash
+     git add .claude/prompts/
+     git commit -m "chore: add project-specific review prompts from <branch-label> findings"
+     ```
+
+Both Claude and Gemini reviewers merge shared + project prompts at runtime, so
+improvements in either location take effect immediately.
