@@ -40,3 +40,7 @@ Parse from the arguments:
 
 10. When rendering a group of accessibilityRole="radio" controls, wrap them in a View
     with accessibilityRole="radiogroup" and an accessibilityLabel describing the group.
+
+11. When a label, placeholder, or descriptive text references a specific constraint
+    (character length, format, allowed values), update it if the underlying constraint
+    changes — stale copy misleads users about what input is valid.
