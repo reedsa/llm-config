@@ -26,6 +26,10 @@ Focus on:
 - Form-control disabled state: when a test asserts that a guard prevents form submission,
   also verify the control's disabled state (e.g. `accessibilityState?.disabled === true`),
   not only the absence of side-effects like a mock not being called.
+- Firestore rules / client consistency: when a PR tightens a security rule's field
+  constraint (type, format, range), check whether `lib/` client code still produces
+  values that satisfy the new constraint — empty-string sentinels, default values written
+  on creation, and intermediate states (e.g. `accentColor: ''`) are common failure modes.
 
 Format your response as:
 
