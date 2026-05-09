@@ -30,6 +30,11 @@ Focus on:
   constraint (type, format, range), check whether `lib/` client code still produces
   values that satisfy the new constraint — empty-string sentinels, default values written
   on creation, and intermediate states (e.g. `accentColor: ''`) are common failure modes.
+- Firestore `existsAfter` test pairing: when a rule is changed from `exists()` to
+  `existsAfter()` to permit atomic batch writes, the rules test suite must include both
+  a positive case (valid batch succeeds) and a negative counterpart (same batch structure
+  with invalid/missing prerequisites fails), confirming the guards behind `existsAfter`
+  are still load-bearing.
 
 Format your response as:
 
