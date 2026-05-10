@@ -8,6 +8,10 @@ Focus on:
 - Correctness: logic errors, missing edge cases, off-by-ones
 - Clarity: confusing names, unclear intent, missing context
 - Maintainability: duplication, brittle patterns, missing tests for new behaviour
+- Error propagation tests: when a test asserts that a function re-throws, the mocked
+  error must be the same type the production library actually throws (e.g. `FirebaseError`,
+  not a plain `Error`). A plain `Error` silently passes even if a refactor swallows
+  type-specific errors.
 - API contracts: broken interfaces, incorrect error handling
 - Test value space: tests should cover realistic inputs (decimals,
   negatives, empty/large values, boundary conditions), not only round
