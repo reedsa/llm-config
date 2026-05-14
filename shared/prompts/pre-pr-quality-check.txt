@@ -39,6 +39,14 @@ Focus on:
   a positive case (valid batch succeeds) and a negative counterpart (same batch structure
   with invalid/missing prerequisites fails), confirming the guards behind `existsAfter`
   are still load-bearing.
+- Incomplete extraction: when a component is extracted to remove duplication, check that
+  any internal utility functions (color helpers, formatters, etc.) are also exported or moved
+  to a shared location if other callers still implement the same logic independently.
+- Dead mocks: flag `jest.mock(...)` calls for modules the component under test does not
+  import, directly or transitively — they add false coupling and obscure real dependencies.
+- Assertion specificity: flag `toBeTruthy()`, `toBeDefined()`, or other non-specific matchers
+  when the expected value can be computed from the input — use `toBe(exactValue)` to catch
+  real regressions.
 
 Format your response as:
 
