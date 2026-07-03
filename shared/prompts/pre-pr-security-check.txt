@@ -22,7 +22,17 @@ Check for:
   unless integers or fixed-point are guaranteed end-to-end.
 - Dependency risks (new packages with known CVEs or unusual permissions)
 - Cryptography misuse (weak algorithms, improper key handling, broken randomness)
+- JWT algorithm pinning: `jwt.verify(token, secret)` called without an explicit
+  `algorithms` option is vulnerable to algorithm-confusion attacks. Flag any
+  verify call that doesn't restrict accepted algorithms.
 - Information disclosure (verbose errors, stack traces, over-broad API responses)
+- Unawaited security-critical writes: a `void`/fire-and-forget call to an audit
+  log, security event log, or other write whose loss would undermine a security
+  guarantee is unsafe in serverless compute (Cloud Run, Cloud Functions, Lambda)
+  — the runtime can freeze/throttle CPU immediately after the response is sent,
+  cutting the background write off mid-flight. Flag unawaited calls to anything
+  audit/security-log-shaped; awaiting is safe as long as the callee already
+  swallows its own errors internally.
 
 Format your response as:
 

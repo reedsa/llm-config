@@ -44,3 +44,14 @@ Parse from the arguments:
 11. When a label, placeholder, or descriptive text references a specific constraint
     (character length, format, allowed values), update it if the underlying constraint
     changes — stale copy misleads users about what input is valid.
+
+12. When writing or editing a Cloud Build config (cloudbuild/*.yaml), use the
+    built-in `$PROJECT_ID` substitution instead of hardcoding a literal GCP
+    project ID — check whether the file already uses `$PROJECT_ID` elsewhere
+    (e.g. image tags) and match it for consistency.
+
+13. When a stateful connection handler (WebSocket, socket protocol, multi-message
+    session) processes a message whose handling depends on state populated by an
+    earlier message (e.g. a "setup"/handshake step), explicitly guard against
+    that state being missing — close the connection with a clear reason rather
+    than silently returning or letting a downstream call receive `undefined`.
