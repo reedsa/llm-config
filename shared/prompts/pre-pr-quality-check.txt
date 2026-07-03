@@ -47,6 +47,14 @@ Focus on:
 - Assertion specificity: flag `toBeTruthy()`, `toBeDefined()`, or other non-specific matchers
   when the expected value can be computed from the input — use `toBe(exactValue)` to catch
   real regressions.
+- Config/env migration completeness: when a PR replaces one config format with another
+  (docker-compose → mprocs/Procfile, env vars moved between files), diff the new config
+  against the original field-by-field. A dropped var (an emulator-host override, a dummy-key
+  default) fails silently and can point local dev at production instead of erroring.
+- Base-branch reality: when a change references another app's directory, script, or config
+  entry, verify that target actually exists on the PR's base branch — not just on the
+  branch the diff was authored from. A reference to code that only exists on an unmerged
+  sibling branch breaks for anyone reviewing or running the PR as-is.
 
 Format your response as:
 
