@@ -55,6 +55,12 @@ Focus on:
   entry, verify that target actually exists on the PR's base branch — not just on the
   branch the diff was authored from. A reference to code that only exists on an unmerged
   sibling branch breaks for anyone reviewing or running the PR as-is.
+- Membership-check scan vs. direct lookup: when new code answers "does entity X belong to
+  collection Y" by fetching every item in Y and searching (or reusing a helper that does),
+  check whether a single direct document read at the known path (e.g.
+  `parents/{y}/members/{x}`) would answer the same question in O(1). This scales badly with
+  tenant/entity count and is easy to introduce by reaching for an existing "get all" helper
+  instead of writing the narrower targeted check.
 
 Format your response as:
 
