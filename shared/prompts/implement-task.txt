@@ -55,3 +55,16 @@ Parse from the arguments:
     earlier message (e.g. a "setup"/handshake step), explicitly guard against
     that state being missing — close the connection with a clear reason rather
     than silently returning or letting a downstream call receive `undefined`.
+
+14. When writing a Docker HEALTHCHECK (or any in-container loopback probe) that
+    hits the app over HTTP, use `127.0.0.1` instead of `localhost` — Node 17+
+    defaults `dns.lookup` to `verbatim=true`, resolving `localhost` to IPv6
+    `::1` first, and a server bound only to `0.0.0.0` (IPv4) fails the check
+    with `ECONNREFUSED`.
+
+15. When configuring a Cloud Run `--startup-probe`, budget at least 30-45
+    seconds of total allowance (`periodSeconds` × `failureThreshold`) for
+    Node.js/Next.js cold starts — a tight threshold (e.g. 3s × 3 = 9s) can
+    trigger a crash-restart loop before the app finishes booting. Liveness
+    probes don't need the same headroom since they gate ongoing health, not
+    initial startup.
