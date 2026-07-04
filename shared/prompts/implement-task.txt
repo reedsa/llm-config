@@ -68,3 +68,18 @@ Parse from the arguments:
     trigger a crash-restart loop before the app finishes booting. Liveness
     probes don't need the same headroom since they gate ongoing health, not
     initial startup.
+
+16. When adding a new internal module to a package whose index.ts re-exports
+    everything (`packages/*/src/index.ts`), import shared internals (env
+    checks, config helpers) from a dedicated leaf module - never import
+    back from index.ts itself. That creates a circular dependency between
+    index.ts and the new module, which can resolve to `undefined` at
+    runtime depending on import order.
+
+17. When a file gains a new real (non-type-only) import from a workspace
+    package (`@rivermount/shared`, etc.), check whether the consuming
+    app's `vitest.config.ts` has a `resolve.alias` pointing that package
+    at its source (`src/index.ts`) rather than relying on its built
+    `dist/` output. CI's Test job runs before any build step, so a
+    package resolved via `dist/index.js` fails to resolve in a fresh
+    checkout even though it works locally once you've built it once.

@@ -61,6 +61,17 @@ Focus on:
   `parents/{y}/members/{x}`) would answer the same question in O(1). This scales badly with
   tenant/entity count and is easy to introduce by reaching for an existing "get all" helper
   instead of writing the narrower targeted check.
+- Logging migration data loss: when a PR migrates or refactors logging calls (changing a
+  logger's signature, consolidating call sites, or moving to a shared logger), diff each
+  changed call site against its original to confirm the error object's message/stack (or
+  other diagnostic fields) are still captured, not just moved. A mechanical/automated
+  cleanup pass can silently drop the actual error detail while leaving the call
+  syntactically valid, making the regression invisible in a quick read of the diff.
+- Arbitrary-data serialization safety: flag any new/changed function that calls
+  `JSON.stringify` on caller-supplied or otherwise not-fully-controlled data (log metadata,
+  audit trail bodies, API response payloads) without handling circular references (which
+  throw), `BigInt` values (which throw), and `Error` objects (whose `message`/`stack` are
+  non-enumerable and silently vanish under a plain stringify).
 
 Format your response as:
 
