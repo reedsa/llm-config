@@ -33,6 +33,12 @@ Check for:
   cutting the background write off mid-flight. Flag unawaited calls to anything
   audit/security-log-shaped; awaiting is safe as long as the callee already
   swallows its own errors internally.
+- Empty-string equality lookups: an equality filter (`where(field, "==", value)`,
+  a SQL `=`) built from a caller-supplied string is unsafe if that string can be
+  empty after trimming/normalizing — an empty value matches any record with a
+  missing or blank field, which can return an unrelated tenant/entity's data
+  instead of "not found." Flag any lookup-by-external-identifier function that
+  doesn't reject empty/whitespace-only input before it reaches the query.
 
 Format your response as:
 
