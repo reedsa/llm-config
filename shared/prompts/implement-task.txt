@@ -83,3 +83,18 @@ Parse from the arguments:
     `dist/` output. CI's Test job runs before any build step, so a
     package resolved via `dist/index.js` fails to resolve in a fresh
     checkout even though it works locally once you've built it once.
+
+18. When writing a script that performs destructive/mutating operations
+    against a shared environment (a migration, backfill, or bulk-write
+    script), require the target project/database to be set explicitly
+    and exit with an error if it's missing - never fall back to a
+    hardcoded production project ID as a default. An operator running it
+    locally without the right env vars set would otherwise silently
+    write to production.
+
+19. When writing to a Firestore field that holds a nested object (e.g.
+    `metadata`) via `.update()` or another partial-write call, merge with
+    the field's existing parsed value first if you only mean to change
+    one key. `.update()` replaces the whole field value - it does not
+    deep-merge nested objects the way it merges separate top-level field
+    paths.
