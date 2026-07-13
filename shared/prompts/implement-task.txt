@@ -98,3 +98,12 @@ Parse from the arguments:
     one key. `.update()` replaces the whole field value - it does not
     deep-merge nested objects the way it merges separate top-level field
     paths.
+
+20. When a check needs to distinguish between variants of a union type that
+    isn't a true discriminated union (e.g. `Agent = ChatAgent | VoiceAgent`,
+    sharing a non-narrowing `typeId` field), don't infer the variant from
+    whether an optional field is present (`"scheduling" in agent`) - that
+    field can linger stale on a doc after typeId changes, until the next
+    save clears it. Compute the variant from the dedicated type helper
+    (e.g. `isChatAgent(typeId, ...)`) first; only fall back to the
+    structural `in` check afterward if TypeScript needs it to narrow.
