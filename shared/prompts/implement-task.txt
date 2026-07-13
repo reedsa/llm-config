@@ -104,6 +104,10 @@ Parse from the arguments:
     sharing a non-narrowing `typeId` field), don't infer the variant from
     whether an optional field is present (`"scheduling" in agent`) - that
     field can linger stale on a doc after typeId changes, until the next
-    save clears it. Compute the variant from the dedicated type helper
-    (e.g. `isChatAgent(typeId, ...)`) first; only fall back to the
-    structural `in` check afterward if TypeScript needs it to narrow.
+    save clears it. Define a type predicate on the authoritative field
+    instead - `function isVoiceAgentType(agent: Agent): agent is VoiceAgent
+    { return !agent.typeId?.includes("chat"); }` - so one function both
+    decides correctly AND narrows the type for TypeScript, with no
+    structural `in` check needed at all. An authoritative boolean plus a
+    separate `in` check "just for narrowing" is a sign a type predicate
+    was the right shape and got missed.
