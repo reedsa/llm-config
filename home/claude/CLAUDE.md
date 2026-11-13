@@ -5,7 +5,14 @@ override these where they conflict — project-specific rules always win.
 
 ## Before starting any task
 Read the project's CLAUDE.md if one exists. It is the authoritative source of
-conventions, architecture, and Definition of Done for that codebase.
+conventions, architecture, and Definition of Done for that codebase. If an
+`Index.md` exists, read it to locate docs and load only the files relevant to
+the current task.
+
+## Context & memory maintenance
+- Keep `CLAUDE.md` and `MEMORY.md` lean: store rules and pointers, not inline reference dumps.
+- If a change makes `Index.md`, `CLAUDE.md`, or referenced docs wrong, update them in the same change.
+- Record only decisions, gotchas, and current state — never session logs.
 
 ## Code changes
 - Make focused, minimal changes. Fix the thing asked for; don't clean up

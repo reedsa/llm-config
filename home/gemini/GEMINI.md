@@ -7,7 +7,13 @@ project-specific rules always take precedence where they conflict.
 ## Before starting any task
 If a GEMINI.md or CLAUDE.md exists in the project root, read it before doing
 anything. It is the authoritative source of conventions and requirements for
-that codebase.
+that codebase. If an `Index.md` exists, read it to locate docs and load only the
+files relevant to the current task.
+
+## Context & memory maintenance
+- Keep `GEMINI.md`, `CLAUDE.md`, and memory files lean: store rules and pointers, not inline reference dumps.
+- If a change makes `Index.md`, `GEMINI.md`, `CLAUDE.md`, or referenced docs wrong, update them in the same change.
+- Record only decisions, gotchas, and current state — never session logs.
 
 ## Code changes
 - Make focused, minimal changes. Fix the thing asked for; don't clean up
